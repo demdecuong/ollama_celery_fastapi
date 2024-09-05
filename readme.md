@@ -1,6 +1,6 @@
 
 ## Simple Ollama service with Celery and FastAPI
-I’m trying to make my life less dull by spending time learning , researching and some hands-on “how it works“ in the AI/Data field.
+I’m trying to make my life less dull by spending time learning , researching and doing some hands-on “how it works“ in the AI/Data field.
 
 ![](asset/img.png)
 ### Tech - Begineer Level
