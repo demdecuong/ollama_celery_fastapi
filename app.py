@@ -6,10 +6,11 @@ import time
 import uvicorn
 
 from pydantic import BaseModel
-from router import file_router
+from routers import files, ollama
 
-app = FastAPI()
-app.include_router(file_router)
+app = FastAPI(swagger_ui_parameters={"syntaxHighlight": False})
+app.include_router(files.router)
+app.include_router(ollama.router)
 
 # class TaskOut(BaseModel):
 #     id: str
@@ -26,6 +27,7 @@ app.include_router(file_router)
 #     return TaskOut(id=r.task_id, status=r.status)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
-    uvicorn.run(app, host="0.0.0.0", port=8888)
+    # uvicorn.run(app, host="0.0.0.0", port=8888)
+    uvicorn.run("app:app", host="0.0.0.0", port=8888, reload=True)
