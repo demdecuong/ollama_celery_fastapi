@@ -7,7 +7,7 @@ services:
   app:
     container_name: app
     build: .
-    command: uvicorn tasks:app --host 0.0.0.0 --port 8000 --reload
+    command: uvicorn app:app --host 0.0.0.0 --port 8000 --reload
     volumes:
       - .:/app
     ports:
@@ -15,6 +15,17 @@ services:
     restart: always
     depends_on:
       - redis
+
+  # RabbitMQ - queue
+  rabbit:
+    hostname: rabbit
+    image: rabbitmq:3-management
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin
+    ports:
+      - "5672:5672"
+      - "15672:15672"  # here, we can access rabbitmq management plugin
   celery_worker:
     container_name: celery_worker
     build: .
@@ -27,6 +38,7 @@ services:
     depends_on:
       - redis
       - app
+      - rabbit
   flower:
     container_name: flower
     build: .

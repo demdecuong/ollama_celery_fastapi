@@ -1,11 +1,6 @@
-import asyncio
-import time
-from fastapi import APIRouter, status
-from fastapi import APIRouter, File, UploadFile
+from fastapi import APIRouter, status, File, UploadFile
 from typing import List
-from controller import FileUpload
-from schemas import OkResponse, CreatedResponse, AcceptedResponse
-import requests
+from .schemas import OkResponse, CreatedResponse, AcceptedResponse
 
 router = APIRouter(
     prefix="/file",
@@ -37,9 +32,3 @@ router = APIRouter(
 )
 async def ping():
     return {"status": True}
-
-
-@router.post("/upload_files")
-async def upload_file_queue(files_list: List[UploadFile] = File(...)):
-    files_number = FileUpload.upload_files(files_list)
-    return {"Number of files will be processed": files_number}

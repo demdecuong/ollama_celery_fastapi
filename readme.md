@@ -1,8 +1,8 @@
-## Simple Ollama service with Celery and FastAPI
+## Sample FastAPI to demonstrate Async architecture with Celery, RabbitMQ, Ollama and Flower
 
 I’m trying to make my life less dull by spending time learning , researching and doing some hands-on “how it works“ in the AI/Data field.
 
-![](asset/img.png)
+[//]: # (![]&#40;asset/img.png&#41;)
 
 ### Tech - Begineer Level
 
@@ -34,9 +34,14 @@ After the above script, ensure the port http://localhost:11434/ shows `Ollama is
 ### Usage
 
 in details are lists in [./docs](./docs/)
-
+### Specs:
+- OS: Ubuntu 22.04
+- RAM >= 12GB
+- CPU: i5-9400F CPU @ 2.90GHz
+- 
 ### Reference
 
 https://medium.com/@simeon.emanuilov/ollama-with-fastapi-7f43cf532c43  
 https://github.com/zhanymkanov/fastapi-best-practices  
 https://github.com/derlin/fastapi-notebook-runner/tree/main
+https://github.com/sumanentc/fastapi-celery-rabbitmq-application/

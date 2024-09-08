@@ -1,22 +1,26 @@
-import asyncio
-import time
-from fastapi import APIRouter, status, HTTPException, File, UploadFile
-from typing import List
-from controller import FileUpload
-from schemas import OkResponse, CreatedResponse, AcceptedResponse
+import os
 import requests
+from fastapi import APIRouter, HTTPException, BackgroundTasks
+from celery_worker import request_ollama_api, get_task_info
+from routers.llm.utils import monitor_task, is_running_in_docker
+from starlette.responses import JSONResponse
 
 router = APIRouter(
     prefix="/llm",
     tags=["llm"],
     responses={404: {"description": "Not found"}},
 )
-OLLAMA_URL = "http://localhost:11434/api/generate"
-OLLAMA_MODEL = "llama3.1:8b"
+if is_running_in_docker:
+    OLLAMA_URL = "http://host.docker.internal:11434"
+else:
+    OLLAMA_URL = "http://localhost:11434"
+
+OLLAMA_URL = OLLAMA_URL + "/api/generate"
+OLLAMA_MODEL = os.environ.get('OLLAMA_MODEL')
 
 
 @router.post("/generate")
-async def generate_text(prompt: str):  # sourcery skip: raise-from-previous-error
+async def generate_text(prompt: str, background_tasks: BackgroundTasks):  # sourcery skip: raise-from-previous-error
     payload = {
         "model": OLLAMA_MODEL,
         "prompt": prompt,
@@ -57,7 +61,25 @@ async def generate_text(prompt: str):  # sourcery skip: raise-from-previous-erro
         response = requests.post(OLLAMA_URL, json=payload, headers=headers)
         response.raise_for_status()
         return response.json()
+
+        # TODO: FIX HERE
+        # task = request_ollama_api.delay(
+        #     OLLAMA_URL=OLLAMA_URL,
+        #     payload=payload,
+        #     headers=headers
+        # )
+        #
+        # background_tasks.add_task(monitor_task, task.id)
+        # return JSONResponse({"task_id": task.id})
     except requests.RequestException as e:
         raise HTTPException(
             status_code=500, detail=f"Error communicating with Ollama: {str(e)}"
         )
+
+
+@router.get("/task/{task_id}")
+async def get_task_status(task_id: str) -> dict:
+    """
+    Return the status of the submitted Task
+    """
+    return get_task_info(task_id)

@@ -1,36 +1,39 @@
 import os
+import time
+import random
+import requests
+
 import pandas as pd
 from celery import Celery
+from celery.utils.log import get_task_logger
+from celery.result import AsyncResult
 
-celery_app = Celery('tasks', broker='redis://redis/0', backend='redis://redis/0')
-
-
-@celery_app.task()
-def add(a, b):
-    for i in range(a, b):
-        print(i)
-    return {"number": a + b}
-
-
-celery_app.conf.broker_url = os.environ.get("CELERY_BROKER_URL")
-celery_app.conf.result_backend = os.environ.get("CELERY_RESULT_BACKEND")
+celery_app = Celery('tasks',
+                    broker=os.environ.get("CELERY_BROKER_URL", "amqp://guest:guest@localhost:5672//"),
+                    backend=os.environ.get("CELERY_RESULT_BACKEND")
+                    )
+celery_log = get_task_logger(__name__)
 
 
-# Celery periodic tasks
-@celery_app.on_after_configure.connect
-def setup_periodic_tasks(sender, **kwargs) -> None:
-    # Example of periodic task (will be executed every 10 seconds)
-    sender.add_periodic_task(10, periodic_task.s(), name='Periodic task example')
+# celery_app.conf.broker_url = os.environ.get("CELERY_BROKER_URL")
+# celery_app.conf.result_backend = os.environ.get("CELERY_RESULT_BACKEND")
 
 
-@celery_app.task(name="Periodic Task (every 10 seconds)")
-def periodic_task() -> None:
-    print("Example of periodic task executed!")
+@celery_app.task(name="Request Ollama API")
+def request_ollama_api(payload, headers, OLLAMA_URL):
+    response = requests.post(OLLAMA_URL, json=payload, headers=headers)
+    response.raise_for_status()
+    return response.json()
 
 
-@celery_app.task(name="File Processing Task")
-def file_handler_task(file: str):
-    df = pd.read_excel(file)
-    print(f"{df.head()}")
-    print(f"file processed {file}")
-    os.remove(file)
+def get_task_info(task_id):
+    """
+    return task info for the given task_id
+    """
+    task_result = AsyncResult(task_id)
+    result = {
+        "task_id": task_id,
+        "task_status": task_result.status,
+        "task_result": task_result.result
+    }
+    return result
